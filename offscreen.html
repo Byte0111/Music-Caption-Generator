@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Offscreen Audio Processing</title>
+</head>
+<body>
+  <script>
+    let webSocket = null;
+    let mediaRecorder = null;
+    let captureStream = null;
+    let isCapturing = false;
+    let targetLang = 'hi';
+    let wsUrl = 'ws://localhost:8001/ws';
+    let recorderChunks = [];
+
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'START_RECORDING') {
+        startRecording(message.streamId, message.lang, message.wsUrl);
+        sendResponse({ success: true });
+      } else if (message.action === 'STOP_RECORDING') {
+        stopRecording();
+        sendResponse({ success: true });
+      }
+      return true;
+    });
+
+    function connectWebSocket(url) {
+      if (webSocket && webSocket.readyState === WebSocket.OPEN) return;
+
+      webSocket = new WebSocket(url);
+      
+      webSocket.onopen = () => {
+        console.log("WebSocket connected");
+        webSocket.send(JSON.stringify({ type: 'init', lang: targetLang }));
+      };
+
+      webSocket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'caption' || data.type === 'status') {
+            chrome.runtime.sendMessage({
+              type: 'SHOW_CAPTION',
+              text: data.text
+            });
+          }
+        } catch (e) {}
+      };
+
+      webSocket.onclose = () => {
+        webSocket = null;
+        if (isCapturing) setTimeout(() => connectWebSocket(url), 3000);
+      };
+    }
+
+    async function startRecording(streamId, lang, url) {
+      if (isCapturing) return;
+      
+      targetLang = lang;
+      wsUrl = url;
+      isCapturing = true;
+      
+      connectWebSocket(url);
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            mandatory: {
+              chromeMediaSource: 'tab',
+              chromeMediaSourceId: streamId
+            }
+          },
+          video: false
+        });
+        
+        captureStream = stream;
+        
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : 'audio/webm';
+        
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        recorderChunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recorderChunks.push(e.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          if (!isCapturing || recorderChunks.length === 0) return;
+          
+          const blob = new Blob(recorderChunks, { type: mimeType });
+          recorderChunks = [];
+          
+          if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+            webSocket.send(await blob.arrayBuffer());
+          }
+        };
+        
+        mediaRecorder.start(2000);
+        
+      } catch (err) {
+        console.error("Record error:", err);
+        isCapturing = false;
+      }
+    }
+
+    function stopRecording() {
+      isCapturing = false;
+      
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder = null;
+      }
+      
+      if (captureStream) {
+        captureStream.getTracks().forEach(t => t.stop());
+        captureStream = null;
+      }
+    }
+  </script>
+</body>
+</html>

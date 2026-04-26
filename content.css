@@ -1,0 +1,37 @@
+#ai-caption-overlay-container {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 999999;
+  pointer-events: none; /* Let clicks pass through to the video */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#ai-caption-text {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 12px;
+  max-width: 80%;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ai-caption-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.ai-caption-visible {
+  opacity: 1;
+  transform: translateY(0);
+}

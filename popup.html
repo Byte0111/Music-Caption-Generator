@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Live Captions</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { width: 300px; padding: 16px; background: #0a0a0f; color: #fff; }
+    h1 { font-size: 16px; color: #00ff88; margin-bottom: 16px; text-align: center; }
+    
+    .statusBar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 12px; background: #1a1a2e; border-radius: 6px; }
+    .statusDot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+    .statusDot.green { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+    .statusDot.red { background: #ff4444; }
+    .statusText { font-size: 11px; color: #aaa; }
+    
+    .toggleContainer { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: #1a1a2e; border-radius: 8px; }
+    .toggleLabel { font-size: 14px; font-weight: bold; }
+    
+    .switch { position: relative; width: 50px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #333; border-radius: 26px; transition: 0.3s; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+    input:checked + .slider { background: #00ff88; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    .inputGroup { margin-bottom: 12px; }
+    .inputGroup label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
+    .inputGroup select { width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 13px; }
+    
+    .preview { margin-top: 12px; padding: 12px; background: #1a1a2e; border-radius: 8px; min-height: 60px; }
+    .previewLabel { font-size: 11px; color: #666; margin-bottom: 4px; }
+    .previewText { font-size: 14px; color: #fff; font-style: italic; }
+    .previewText.waiting { color: #ffaa00; }
+  </style>
+</head>
+<body>
+  <h1> AI Live Captions</h1>
+  
+  <div class="statusBar">
+    <div class="statusDot" id="statusDot"></div>
+    <span class="statusText" id="statusText">Ready</span>
+  </div>
+  
+  <div class="toggleContainer">
+    <span class="toggleLabel">Start Capture</span>
+    <label class="switch">
+      <input type="checkbox" id="powerToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="inputGroup">
+    <label>Language</label>
+    <select id="langInput">
+      <option value="hi">Hindi</option>
+      <option value="bn">Bengali</option>
+      <option value="ta">Tamil</option>
+      <option value="te">Telugu</option>
+      <option value="ml">Malayalam</option>
+      <option value="kn">Kannada</option>
+      <option value="gu">Gujarati</option>
+      <option value="mr">Marathi</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+  
+  <div class="preview">
+    <div class="previewLabel">Live Caption</div>
+    <div class="previewText" id="previewText">-</div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
